@@ -102,7 +102,9 @@ class App extends React.Component {
     event.preventDefault();
     const newSongsList = [
       { name: this.input.current.value, value: this.state.song },
-      ...this.state.songsList,
+      ...(this.state.songsList && this.state.songsList.length
+        ? this.state.songsList
+        : []),
     ];
     localStorage.setItem(
       'songs',
