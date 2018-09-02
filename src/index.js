@@ -175,7 +175,7 @@ class App extends React.Component {
           />
         </div>
 
-        <SongsList songsList={songsList} selectSong={selectSong} />
+        <SongsList songsList={songsList} selectSong={selectSong} selectedSong={selectedSong}/>
       </div>
     );
   }
