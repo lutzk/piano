@@ -3,9 +3,14 @@ import React from "react";
 const SongNameForm = React.forwardRef(({ showSongNameForm, handleSaveNewSong }, ref) => {
     if (showSongNameForm) {
         return (
-            <div>
+            <div className="songNameForm"> 
                 <form onSubmit={handleSaveNewSong}>
-                    <input type="text" placeholder="song name" ref={ref} />
+                    <input
+                        ref={ref}
+                        type="text"
+                        className="newSongName"
+                        placeholder="song name"
+                         />
                     <button>save</button>
                 </form>
             </div>
