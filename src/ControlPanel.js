@@ -11,20 +11,18 @@ const ControlPanel = ({
     startRecording,
 }) => {
     return (
-        <div className="ControlPanel">
-            ControlPanel
-            &nbsp;
-            {isRecording &&
+        <div className="controlPanel">
+            {!showSaveDialog && isRecording &&
                 <button
                     onClick={stopRecording}
                     disabled={showSaveDialog}>stop record</button>}
 
-            {!isRecording &&
+            {!showSaveDialog && !isRecording &&
                 <button
                     onClick={startRecording}
                     disabled={showSaveDialog}>start record</button>}
 
-            {!isRecording && selectedSong &&
+            {!showSaveDialog && !isRecording && selectedSong &&
                 <button
                     onClick={playSong}
                     disabled={showSaveDialog}>play song</button>}
