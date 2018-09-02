@@ -15,7 +15,7 @@ const ControlPanel = ({
             {!showSaveDialog && isRecording &&
                 <button
                     onClick={stopRecording}
-                    disabled={showSaveDialog}>stop record</button>}
+                    disabled={showSaveDialog}>stop record </button>}
 
             {!showSaveDialog && !isRecording &&
                 <button
@@ -31,6 +31,10 @@ const ControlPanel = ({
                 {<button onClick={saveRecord}>save record</button>}
                 {<button onClick={discartRecord}>discart record</button>}
             </div>}
+
+            {isRecording && <div className="recordIndicator">
+                <span className="recordIndicator__text">recording</span>
+                <span className="recordIndicator__light"></span></div>}
         </div>);
 };
 
