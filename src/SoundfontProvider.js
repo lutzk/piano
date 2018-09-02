@@ -137,6 +137,8 @@ class SoundfontProvider extends React.Component {
           activeAudioNodes: Object.assign({}, this.state.activeAudioNodes, {
             [midiNumber]: null
           })
+        }, _ => {
+          this.props.updateSong(this.songToOptions(this.state.song));
         });
       } else {
         this.setState({
