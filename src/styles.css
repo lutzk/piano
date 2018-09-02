@@ -16,15 +16,49 @@
   background: #0396ca;
 }
 
+.app {
+  width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+button {
+  padding: 7px;
+  appearance: none;
+  background-color: #f6f5f3;
+  color: #555;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  background-color: white;
+  color: #888;
+}
+
+.controlPanel {
+  padding: 15px 0;
+}
+
 .songsList {
   display: flex;
+  flex-wrap: wrap;
+  margin-left: -5px;
+  margin-right: -5px;
+  padding-top: 10px;
 }
 
 .songsList__song {
+  flex: 1;
   margin: 5px;
   padding: 5px;
   cursor: pointer;
-  background-color: #aaa;
+  background-color: #f6f5f3;
+  color: #555;
+  border: 1px solid #888;
+  border-radius: 3px;
+  text-align: center;
 }
 
 .songsList__song--active {
