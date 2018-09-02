@@ -43,7 +43,7 @@ const MyPiano = ({
             recordStartTime={recordStartTime}
             render={({ isLoading, playNote, stopNote }) => (
                 <Piano
-                    width={300}
+                    width={500}
                     noteRange={noteRange}
                     onPlayNote={playNote}
                     onStopNote={stopNote}
