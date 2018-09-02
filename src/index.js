@@ -142,8 +142,8 @@ class App extends React.Component {
     } = this;
 
     return (
-      <div>
-        <h1>react-piano demos</h1>
+      <div className="app"> 
+        <h1>Piano</h1>
         <ControlPanel
           playSong={playSong}
           isPlaying={isPlaying}
