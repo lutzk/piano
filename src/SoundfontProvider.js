@@ -51,7 +51,7 @@ class SoundfontProvider extends React.Component {
     }
 
     if (!prevProps.isPlaying && this.props.isPlaying) {
-      this.replay(this.props.selectedSong.value);
+      this.replaySong(this.props.selectedSong.value);
     }
 
     if (prevProps.isRecording && !this.props.isRecording) {
@@ -76,7 +76,7 @@ class SoundfontProvider extends React.Component {
     });
   };
 
-  record = ({ id, midi, startTime }) => {
+  addNoteToSong = ({ id, midi, startTime }) => {
     this.state.song.push({ id, midi, startTime })
   }
 
@@ -92,7 +92,7 @@ class SoundfontProvider extends React.Component {
     }
   });
 
-  replay = song => {
+  replaySong = song => {
     this.state.instrument.schedule(0, song);
     this.props.resetPlay();
   }
@@ -101,7 +101,7 @@ class SoundfontProvider extends React.Component {
     this.props.audioContext.resume().then(() => {
       const audioNode = this.state.instrument.play(midiNumber);
       if (this.props.isRecording) {
-        this.record({
+        this.addNoteToSong({
           id: audioNode.id,
           midi: midiNumber,
           startTime: Date.now()
