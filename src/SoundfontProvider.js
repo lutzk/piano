@@ -11,20 +11,33 @@ class SoundfontProvider extends React.Component {
     format: PropTypes.oneOf(["mp3", "ogg"]),
     soundfont: PropTypes.oneOf(["MusyngKite", "FluidR3_GM"]),
     audioContext: PropTypes.instanceOf(window.AudioContext),
-    render: PropTypes.func
+    isRecording: PropTypes.bool.isRequired,
+    addNoteToSong: PropTypes.func.isRequired,
+    selectedSong: PropTypes.object,
+    song: PropTypes.array,
+    resetPlay: PropTypes.func.isRequired,
+    updateSong: PropTypes.func.isRequired,
+    recordStartTime: PropTypes.number,
+    render: PropTypes.func,
   };
 
   static defaultProps = {
     format: "mp3",
     soundfont: "MusyngKite",
-    instrumentName: "acoustic_grand_piano"
+    instrumentName: "acoustic_grand_piano",
+    isRecording: false,
+    isPlaying: false,
+    song: [],
+    selectedSong: null,
+    recordStartTime: null
   };
 
   constructor(props) {
     super(props);
     this.state = {
       activeAudioNodes: {},
-      instrument: null
+      instrument: null,
+      song: [],
     };
   }
 
@@ -36,6 +49,14 @@ class SoundfontProvider extends React.Component {
     if (prevProps.instrumentName !== this.props.instrumentName) {
       this.loadInstrument(this.props.instrumentName);
     }
+
+    if (!prevProps.isPlaying && this.props.isPlaying) {
+      this.replay(this.props.selectedSong.value);
+    }
+
+    if (prevProps.isRecording && !this.props.isRecording) {
+      this.props.updateSong(this.songToOptions(this.state.song));
+    }
   }
 
   loadInstrument = instrumentName => {
@@ -45,9 +66,8 @@ class SoundfontProvider extends React.Component {
     });
     Soundfont.instrument(this.props.audioContext, instrumentName, {
       format: this.props.format,
-      soundfont: this.props.soundfont,
-      nameToUrl: (name, soundfont, format) => {
-        return `${this.props.hostname}/${soundfont}/${name}-${format}.js`;
+      nameToUrl: (name, _, format) => {
+        return `${this.props.hostname}/${name}-${format}.js`;
       }
     }).then(instrument => {
       this.setState({
@@ -56,21 +76,38 @@ class SoundfontProvider extends React.Component {
     });
   };
 
+  record = ({ id, midi, startTime }) => {
+    this.state.song.push({ id, midi, startTime })
+  }
+
+  songToOptions = song => song.map(s => {
+    let time = parseFloat(parseFloat((s.startTime - this.props.recordStartTime) / 1000).toFixed(2));
+    time = time === -0 ? 0.1 : time;
+    const duration = parseFloat(parseFloat((s.endTime - s.startTime) / 1000).toFixed(2));
+
+    return {
+      midi: s.midi,
+      time: time < 0 ? 0.1 : time,
+      duration,
+    }
+  });
+
+  replay = song => {
+    this.state.instrument.schedule(0, song);
+    this.props.resetPlay();
+  }
+
   playNote = midiNumber => {
     this.props.audioContext.resume().then(() => {
       const audioNode = this.state.instrument.play(midiNumber);
-      this.state.instrument.schedule(10, [
-        { time: 2, midi: midiNumber },
-        { time: 4, midi: midiNumber },
-        { time: 6, midi: midiNumber }
-      ]);
+      if (this.props.isRecording) {
+        this.record({
+          id: audioNode.id,
+          midi: midiNumber,
+          startTime: Date.now()
+        });
+      }
 
-      console.log(
-        this.state.instrument.play.toString(),
-        midiNumber,
-        "audioNodetime: 0,: ",
-        audioNode
-      );
       this.setState({
         activeAudioNodes: Object.assign({}, this.state.activeAudioNodes, {
           [midiNumber]: audioNode
@@ -86,12 +123,29 @@ class SoundfontProvider extends React.Component {
       }
       const audioNode = this.state.activeAudioNodes[midiNumber];
       audioNode.stop();
-      console.log("audioNode sop: ", audioNode);
-      this.setState({
-        activeAudioNodes: Object.assign({}, this.state.activeAudioNodes, {
-          [midiNumber]: null
-        })
-      });
+
+      if (this.props.isRecording) {
+        const updatedSong = [...this.state.song.map(s => {
+          if (s.id === audioNode.id) {
+            s.endTime = Date.now();
+          }
+          return s;
+        })]
+
+        this.setState({
+          song: updatedSong,
+          activeAudioNodes: Object.assign({}, this.state.activeAudioNodes, {
+            [midiNumber]: null
+          })
+        });
+      } else {
+        this.setState({
+          activeAudioNodes: Object.assign({}, this.state.activeAudioNodes, {
+            [midiNumber]: null
+          })
+        });
+      }
+
     });
   };
 
