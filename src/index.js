@@ -6,6 +6,7 @@ import 'react-piano/build/styles.css';
 import ControlPanel from './ControlPanel';
 import SongsList from './SongsList';
 import MyPiano from './Piano';
+import SongNameForm from './SongNameForm';
 import './styles.css';
 
 class App extends React.Component {
@@ -18,7 +19,7 @@ class App extends React.Component {
       isPlaying: false,
       isRecording: false,
       selectedSong: null,
-      showNameForm: false,
+      showSongNameForm: false,
       showSaveDialog: false,
       recordStartTime: null,
     };
@@ -28,12 +29,6 @@ class App extends React.Component {
   componentDidMount = () => {
     this.setState({
       songsList: this.loadSongsFromStorage(),
-    });
-  }
-
-  playSong = () => {
-    this.setState({
-      isPlaying: true,
     });
   }
 
@@ -66,7 +61,19 @@ class App extends React.Component {
 
   saveRecord = () => {
     this.setState({
-      showNameForm: true,
+      showSongNameForm: true,
+    });
+  }
+
+  playSong = () => {
+    this.setState({
+      isPlaying: true,
+    });
+  }
+
+  selectSong = name => {
+    this.setState({
+      selectedSong: find(this.state.songsList, { name }),
     });
   }
 
@@ -74,6 +81,12 @@ class App extends React.Component {
     this.setState({
       song
     });
+  }
+
+  resetPlay = () => {
+    this.setState({
+      isPlaying: false,
+    })
   }
 
   loadSongsFromStorage = () => {
@@ -85,7 +98,7 @@ class App extends React.Component {
     return songs;
   }
 
-  handleSubmit = event => {
+  handleSaveNewSong = event => {
     event.preventDefault();
     const newSongsList = [
       { name: this.input.current.value, value: this.state.song },
@@ -97,22 +110,10 @@ class App extends React.Component {
     )
     this.setState({
       showSaveDialog: false,
-      showNameForm: false,
+      showSongNameForm: false,
       songsList: newSongsList,
     });
     this.input.current.value = '';
-  }
-
-  resetPlay = () => {
-    this.setState({
-      isPlaying: false,
-    })
-  }
-
-  selectSong = name => {
-    this.setState({
-      selectedSong: find(this.state.songsList, { name }),
-    });
   }
 
   render() {
@@ -122,7 +123,7 @@ class App extends React.Component {
       songsList,
       isRecording,
       selectedSong,
-      showNameForm,
+      showSongNameForm,
       showSaveDialog,
       recordStartTime,
     } = this.state;
@@ -137,6 +138,7 @@ class App extends React.Component {
       stopRecording,
       addNoteToSong,
       startRecording,
+      handleSaveNewSong,
     } = this;
 
     return (
@@ -154,13 +156,10 @@ class App extends React.Component {
           startRecording={startRecording}
         />
 
-        {showNameForm &&
-          <div>
-            <form onSubmit={this.handleSubmit}>
-              <input type="text" placeholder="song name" name="songName" ref={this.input} />
-              <button>save</button>
-            </form>
-          </div>}
+        <SongNameForm
+          ref={this.input}
+          showSongNameForm={showSongNameForm}
+          handleSaveNewSong={handleSaveNewSong} />
 
         <div>
           <MyPiano
