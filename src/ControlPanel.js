@@ -2,11 +2,13 @@ import React from "react";
 
 const ControlPanel = ({
     playSong,
+    isPlaying,
     saveRecord,
     isRecording,
     selectedSong,
     discartRecord,
     stopRecording,
+    stopScheduled,
     showSaveDialog,
     startRecording,
 }) => {
@@ -17,15 +19,20 @@ const ControlPanel = ({
                     onClick={stopRecording}
                     disabled={showSaveDialog}>stop record </button>}
 
-            {!showSaveDialog && !isRecording &&
+            {!isPlaying && !showSaveDialog && !isRecording &&
                 <button
                     onClick={startRecording}
                     disabled={showSaveDialog}>start record</button>}
 
-            {!showSaveDialog && !isRecording && selectedSong &&
+            {!isPlaying && !showSaveDialog && !isRecording && selectedSong &&
                 <button
                     onClick={playSong}
                     disabled={showSaveDialog}>play song</button>}
+
+            {isPlaying &&
+                <button
+                    onClick={stopScheduled}
+                    disabled={showSaveDialog}>stop song</button>}
 
             {showSaveDialog && <div className="saveDialog">
                 {<button onClick={saveRecord}>save record</button>}

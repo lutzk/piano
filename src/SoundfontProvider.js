@@ -18,6 +18,7 @@ class SoundfontProvider extends React.Component {
     resetPlay: PropTypes.func.isRequired,
     updateSong: PropTypes.func.isRequired,
     recordStartTime: PropTypes.number,
+    setScheduled: PropTypes.func.isRequired,
     render: PropTypes.func,
   };
 
@@ -93,8 +94,8 @@ class SoundfontProvider extends React.Component {
   });
 
   replaySong = song => {
-    this.state.instrument.schedule(0, song);
-    this.props.resetPlay();
+    const scheduled = this.state.instrument.schedule(0, song);
+    this.props.setScheduled(scheduled);
   }
 
   playNote = midiNumber => {

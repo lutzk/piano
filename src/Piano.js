@@ -27,6 +27,7 @@ const MyPiano = ({
     addNoteToSong,
     showSaveDialog,
     recordStartTime,
+    setScheduled,
 }) => {
     return (
         <SoundfontProvider
@@ -41,6 +42,7 @@ const MyPiano = ({
             addNoteToSong={addNoteToSong}
             instrumentName="acoustic_grand_piano"
             recordStartTime={recordStartTime}
+            setScheduled={setScheduled}
             render={({ isLoading, playNote, stopNote }) => (
                 <Piano
                     width={500}
