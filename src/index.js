@@ -3,9 +3,9 @@ import ReactDOM from 'react-dom';
 import { find } from 'lodash';
 import 'react-piano/build/styles.css';
 
-import ControlPanel from './ControlPanel';
-import SongsList from './SongsList';
 import MyPiano from './Piano';
+import SongsList from './SongsList';
+import ControlPanel from './ControlPanel';
 import SongNameForm from './SongNameForm';
 import './styles.css';
 
