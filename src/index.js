@@ -52,12 +52,12 @@ class App extends React.Component {
     this.state.song.push({ id, midi, startTime });
   }
 
-  setNodeEndTime = (audioNodeId) => {
-    const updatedSong = [...this.state.song.map(s => {
-      if (s.id === audioNodeId) {
-        s.endTime = Date.now();
+  setNodeEndTime = audioNodeId => {
+    const updatedSong = [...this.state.song.map(node => {
+      if (node.id === audioNodeId) {
+        node.endTime = Date.now();
       }
-      return s;
+      return node;
     })];
     this.setState({
       song: updatedSong,
