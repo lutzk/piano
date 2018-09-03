@@ -21,13 +21,13 @@ const MyPiano = ({
     song,
     resetPlay,
     isPlaying,
-    updateSong,
     isRecording,
     selectedSong,
-    addNoteToSong,
-    showSaveDialog,
-    recordStartTime,
     setScheduled,
+    addNodeToSong,
+    showSaveDialog,
+    setNodeEndTime,
+
 }) => {
     return (
         <SoundfontProvider
@@ -35,14 +35,13 @@ const MyPiano = ({
             hostname={soundfontHostname}
             resetPlay={resetPlay}
             isPlaying={isPlaying}
-            updateSong={updateSong}
             isRecording={isRecording}
             audioContext={audioContext}
             selectedSong={selectedSong}
-            addNoteToSong={addNoteToSong}
-            instrumentName="acoustic_grand_piano"
-            recordStartTime={recordStartTime}
             setScheduled={setScheduled}
+            addNodeToSong={addNodeToSong}
+            setNodeEndTime={setNodeEndTime}
+            instrumentName="acoustic_grand_piano"
             render={({ isLoading, playNote, stopNote }) => (
                 <Piano
                     width={500}

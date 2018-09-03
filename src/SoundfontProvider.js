@@ -6,31 +6,28 @@ import Soundfont from "soundfont-player";
 
 class SoundfontProvider extends React.Component {
   static propTypes = {
-    instrumentName: PropTypes.string.isRequired,
-    hostname: PropTypes.string.isRequired,
     format: PropTypes.oneOf(["mp3", "ogg"]),
-    soundfont: PropTypes.oneOf(["MusyngKite", "FluidR3_GM"]),
-    audioContext: PropTypes.instanceOf(window.AudioContext),
-    isRecording: PropTypes.bool.isRequired,
-    addNoteToSong: PropTypes.func.isRequired,
-    selectedSong: PropTypes.object,
-    song: PropTypes.array,
+    hostname: PropTypes.string.isRequired,
+    isPlaying: PropTypes.bool,
     resetPlay: PropTypes.func.isRequired,
-    updateSong: PropTypes.func.isRequired,
-    recordStartTime: PropTypes.number,
+    soundfont: PropTypes.oneOf(["MusyngKite", "FluidR3_GM"]),
+    isRecording: PropTypes.bool.isRequired,
     setScheduled: PropTypes.func.isRequired,
+    audioContext: PropTypes.instanceOf(window.AudioContext),
+    selectedSong: PropTypes.object,
+    addNodeToSong: PropTypes.func.isRequired,
+    setNodeEndTime: PropTypes.func.isRequired,
+    instrumentName: PropTypes.string.isRequired,
     render: PropTypes.func,
   };
 
   static defaultProps = {
     format: "mp3",
     soundfont: "MusyngKite",
-    instrumentName: "acoustic_grand_piano",
-    isRecording: false,
     isPlaying: false,
-    song: [],
+    isRecording: false,
     selectedSong: null,
-    recordStartTime: null
+    instrumentName: "acoustic_grand_piano",
   };
 
   constructor(props) {
@@ -38,7 +35,6 @@ class SoundfontProvider extends React.Component {
     this.state = {
       activeAudioNodes: {},
       instrument: null,
-      song: [],
     };
   }
 
@@ -53,10 +49,6 @@ class SoundfontProvider extends React.Component {
 
     if (!prevProps.isPlaying && this.props.isPlaying) {
       this.replaySong(this.props.selectedSong.value);
-    }
-
-    if (prevProps.isRecording && !this.props.isRecording) {
-      this.props.updateSong(this.songToOptions(this.state.song));
     }
   }
 
@@ -73,25 +65,15 @@ class SoundfontProvider extends React.Component {
     }).then(instrument => {
       this.setState({
         instrument
+      }, _ => {
+        this.state.instrument.on('ended', (_, id) => {
+          if (this.props.isPlaying) {
+            this.props.resetPlay(id);
+          }
+        })
       });
     });
   };
-
-  addNoteToSong = ({ id, midi, startTime }) => {
-    this.state.song.push({ id, midi, startTime })
-  }
-
-  songToOptions = song => song.map(s => {
-    let time = parseFloat(parseFloat((s.startTime - this.props.recordStartTime) / 1000).toFixed(2));
-    time = time === -0 ? 0.1 : time;
-    const duration = parseFloat(parseFloat((s.endTime - s.startTime) / 1000).toFixed(2));
-
-    return {
-      midi: s.midi,
-      time: time < 0 ? 0.1 : time,
-      duration,
-    }
-  });
 
   replaySong = song => {
     const scheduled = this.state.instrument.schedule(0, song);
@@ -102,7 +84,7 @@ class SoundfontProvider extends React.Component {
     this.props.audioContext.resume().then(() => {
       const audioNode = this.state.instrument.play(midiNumber);
       if (this.props.isRecording) {
-        this.addNoteToSong({
+        this.props.addNodeToSong({
           id: audioNode.id,
           midi: midiNumber,
           startTime: Date.now()
@@ -126,55 +108,39 @@ class SoundfontProvider extends React.Component {
       audioNode.stop();
 
       if (this.props.isRecording) {
-        const updatedSong = [...this.state.song.map(s => {
-          if (s.id === audioNode.id) {
-            s.endTime = Date.now();
-          }
-          return s;
-        })]
-
-        this.setState({
-          song: updatedSong,
-          activeAudioNodes: Object.assign({}, this.state.activeAudioNodes, {
-            [midiNumber]: null
-          })
-        }, _ => {
-          this.props.updateSong(this.songToOptions(this.state.song));
-        });
-      } else {
-        this.setState({
-          activeAudioNodes: Object.assign({}, this.state.activeAudioNodes, {
-            [midiNumber]: null
-          })
-        });
+        this.props.setNodeEndTime(audioNode.id);
       }
-
-    });
-  };
-
-  // Clear any residual notes that don't get called with stopNote
-  stopAllNotes = () => {
-    this.props.audioContext.resume().then(() => {
-      const activeAudioNodes = Object.values(this.state.activeAudioNodes);
-      activeAudioNodes.forEach(node => {
-        if (node) {
-          node.stop();
-        }
-      });
       this.setState({
-        activeAudioNodes: {}
+        activeAudioNodes: Object.assign({}, this.state.activeAudioNodes, {
+          [midiNumber]: null
+        })
       });
     });
-  };
+};
 
-  render() {
-    return this.props.render({
-      isLoading: !this.state.instrument,
-      playNote: this.playNote,
-      stopNote: this.stopNote,
-      stopAllNotes: this.stopAllNotes
+// Clear any residual notes that don't get called with stopNote
+stopAllNotes = () => {
+  this.props.audioContext.resume().then(() => {
+    const activeAudioNodes = Object.values(this.state.activeAudioNodes);
+    activeAudioNodes.forEach(node => {
+      if (node) {
+        node.stop();
+      }
     });
-  }
+    this.setState({
+      activeAudioNodes: {}
+    });
+  });
+};
+
+render() {
+  return this.props.render({
+    isLoading: !this.state.instrument,
+    playNote: this.playNote,
+    stopNote: this.stopNote,
+    stopAllNotes: this.stopAllNotes
+  });
+}
 }
 
 export default SoundfontProvider;

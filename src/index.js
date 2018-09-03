@@ -19,9 +19,9 @@ class App extends React.Component {
       isPlaying: false,
       isRecording: false,
       selectedSong: null,
-      showSongNameForm: false,
       showSaveDialog: false,
       recordStartTime: null,
+      showSongNameForm: false,
     };
     this.input = React.createRef();
   }
@@ -32,10 +32,36 @@ class App extends React.Component {
     });
   }
 
-  addNoteToSong = ({ id, midi, startTime }) => {
-    // console.log('ADD:', ({ id, midi, startTime }));
+  songToOptions = song => song.map(s => {
+    const adjustDigits = (startTime, endTime) =>
+      parseFloat(parseFloat((startTime - endTime) / 1000).toFixed(2));
+
+    let time = adjustDigits(s.startTime, this.state.recordStartTime);
+    time = time === -0 ? 0.1 : time;
+    time = time < 0 ? 0.1 : time;
+    const duration = adjustDigits(s.endTime, s.startTime);
+
+    return {
+      midi: s.midi,
+      time,
+      duration,
+    };
+  });
+
+  addNodeToSong = ({ id, midi, startTime }) => {
     this.state.song.push({ id, midi, startTime });
-    // console.log('ADD:', this.state.song);
+  }
+
+  setNodeEndTime = (audioNodeId) => {
+    const updatedSong = [...this.state.song.map(s => {
+      if (s.id === audioNodeId) {
+        s.endTime = Date.now();
+      }
+      return s;
+    })];
+    this.setState({
+      song: updatedSong,
+    });
   }
 
   startRecording = () => {
@@ -46,9 +72,11 @@ class App extends React.Component {
   }
 
   stopRecording = () => {
+    const hasSong = Boolean(this.state && this.state.song.length);
     this.setState({
+      song: this.songToOptions(this.state.song),
       isRecording: !this.state.isRecording,
-      showSaveDialog: true,
+      showSaveDialog: hasSong,
     });
   }
 
@@ -77,16 +105,13 @@ class App extends React.Component {
     });
   }
 
-  updateSong = song => {
-    this.setState({
-      song
-    });
-  }
-
-  resetPlay = () => {
-    this.setState({
-      isPlaying: false,
-    })
+  resetPlay = id => {
+    const lastId = this.state.scheduled[this.state.scheduled.length - 1].id;
+    if (lastId === id) {
+      this.setState({
+        isPlaying: false,
+      })
+    }
   }
 
   loadSongsFromStorage = () => {
@@ -100,8 +125,13 @@ class App extends React.Component {
 
   handleSaveNewSong = event => {
     event.preventDefault();
+    const songsListLength = this.state.songsList && this.state.songsList.length ? this.state.songsList.length : 0;
+    const name = this.input.current.value || `song-${songsListLength + 1}`
     const newSongsList = [
-      { name: this.input.current.value, value: this.state.song },
+      {
+        name,
+        value: this.state.song
+      },
       ...(this.state.songsList && this.state.songsList.length
         ? this.state.songsList
         : []),
@@ -118,6 +148,23 @@ class App extends React.Component {
     this.input.current.value = '';
   }
 
+  setScheduled = scheduled => {
+    this.setState({
+      scheduled,
+    });
+  }
+
+  stopScheduled = () => {
+    this.state.scheduled.forEach(node => {
+      if (node && typeof node.stop === 'function') {
+        node.stop();
+      }
+    });
+    this.setState({
+      isPlaying: false,
+    });
+  }
+
   render() {
     const {
       song,
@@ -125,26 +172,27 @@ class App extends React.Component {
       songsList,
       isRecording,
       selectedSong,
-      showSongNameForm,
       showSaveDialog,
-      recordStartTime,
+      showSongNameForm,
     } = this.state;
 
     const {
       playSong,
       resetPlay,
       saveRecord,
-      updateSong,
       selectSong,
+      setScheduled,
+      stopScheduled,
       discartRecord,
       stopRecording,
-      addNoteToSong,
+      addNodeToSong,
       startRecording,
+      setNodeEndTime,
       handleSaveNewSong,
     } = this;
 
     return (
-      <div className="app"> 
+      <div className="app">
         <h1>Piano</h1>
         <ControlPanel
           playSong={playSong}
@@ -154,6 +202,7 @@ class App extends React.Component {
           selectedSong={selectedSong}
           discartRecord={discartRecord}
           stopRecording={stopRecording}
+          stopScheduled={stopScheduled}
           showSaveDialog={showSaveDialog}
           startRecording={startRecording}
         />
@@ -168,16 +217,16 @@ class App extends React.Component {
             song={song}
             isPlaying={isPlaying}
             resetPlay={resetPlay}
-            updateSong={updateSong}
             isRecording={isRecording}
+            setScheduled={setScheduled}
             selectedSong={selectedSong}
-            addNoteToSong={addNoteToSong}
+            addNodeToSong={addNodeToSong}
             showSaveDialog={showSaveDialog}
-            recordStartTime={recordStartTime}
+            setNodeEndTime={setNodeEndTime}
           />
         </div>
 
-        <SongsList songsList={songsList} selectSong={selectSong} selectedSong={selectedSong}/>
+        <SongsList songsList={songsList} selectSong={selectSong} selectedSong={selectedSong} />
       </div>
     );
   }
